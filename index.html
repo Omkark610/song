@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PGR4Y0TVNP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PGR4Y0TVNP');
+</script>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Now Playing Songs by Omkar Kadam</title>
+<style>
+:root{--bg:#0b0b0d;--surface:#15151a;--text:#f4f1ea;--muted:#8d8a84;--accent:#d4b46a;--line:rgba(255,255,255,.08);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f3ec;--surface:#fff;--text:#17160f;--muted:#76726a;--accent:#9a7a2c;--line:rgba(0,0,0,.09);color-scheme:light}}
+:root[data-theme="dark"]{--bg:#0b0b0d;--surface:#15151a;--text:#f4f1ea;--muted:#8d8a84;--accent:#d4b46a;--line:rgba(255,255,255,.08);color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 500px at 50% -10%,color-mix(in srgb,var(--accent) 18%,transparent),transparent),var(--bg);color:var(--text);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;display:flex;justify-content:center;padding:clamp(20px,5vw,64px) 20px}
+main{width:100%;max-width:920px}
+.eyebrow{letter-spacing:.32em;text-transform:uppercase;font-size:11px;color:var(--accent);margin:0 0 14px}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:clamp(34px,6vw,60px);line-height:1.05;margin:0 0 28px;letter-spacing:-.01em}
+.frame{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px;box-shadow:0 30px 80px -30px rgba(0,0,0,.6)}
+.video{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.controls{display:flex;align-items:center;justify-content:center;gap:14px;margin:26px 0 8px}
+button{font:inherit;cursor:pointer;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:999px;width:52px;height:52px;display:grid;place-items:center;transition:.2s}
+button:hover{border-color:var(--accent);color:var(--accent)}
+button.main{width:68px;height:68px;background:var(--accent);color:var(--bg);border-color:var(--accent)}
+button.main:hover{color:var(--bg);filter:brightness(1.1)}
+svg{width:20px;height:20px;fill:currentColor}
+button.main svg{width:26px;height:26px}
+form{display:flex;gap:10px;margin-top:40px;border-top:1px solid var(--line);padding-top:28px;flex-wrap:wrap}
+label{width:100%;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:14px 20px;font:inherit;font-size:14px;outline:none}
+input:focus{border-color:var(--accent)}
+form button{width:auto;padding:0 26px;height:48px}
+.note{color:var(--muted);font-size:13px;margin-top:14px;min-height:1em}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Playlist</p>
+  <h1>Now Playing</h1>
+  <div class="frame"><div class="video">
+    <iframe id="player" title="YouTube playlist player" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
+  </div></div>
+
+  <div class="controls">
+    <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12 18 6v12z"/></svg></button>
+    <button id="toggle" class="main" aria-label="Play or pause"><svg id="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+    <button id="next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18V6l8.5 6z"/></svg></button>
+  </div>
+
+</main>
+
+<script>
+var DEFAULT_VIDEO = "FsRxbys6L9E";
+var DEFAULT_LIST = "PLWW0p45eLuto";
+var frame = document.getElementById("player");
+var playing = false;
+
+function load(list, video){
+  var src = video
+    ? "https://www.youtube.com/embed/" + video + "?list=" + list + "&"
+    : "https://www.youtube.com/embed/videoseries?list=" + list + "&";
+  frame.src = src + "enablejsapi=1&rel=0&modestbranding=1&playsinline=1";
+  playing = false; setIcon();
+}
+function cmd(fn){
+  try{ frame.contentWindow.postMessage(JSON.stringify({event:"command",func:fn,args:""}),"*"); }catch(e){}
+}
+function setIcon(){
+  document.getElementById("ico").innerHTML = playing
+    ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'
+    : '<path d="M8 5v14l11-7z"/>';
+}
+document.getElementById("toggle").onclick = function(){ playing = !playing; cmd(playing ? "playVideo" : "pauseVideo"); setIcon(); };
+document.getElementById("next").onclick = function(){ cmd("nextVideo"); playing = true; setIcon(); };
+document.getElementById("prev").onclick = function(){ cmd("previousVideo"); playing = true; setIcon(); };
+
+load(DEFAULT_LIST, DEFAULT_VIDEO);
+</script>
+</body>
+</html>
