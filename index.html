@@ -22,12 +22,15 @@
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;min-height:100vh;background:radial-gradient(900px 500px at 50% -10%,color-mix(in srgb,var(--accent) 18%,transparent),transparent),var(--bg);color:var(--text);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;display:flex;justify-content:center;padding:clamp(20px,5vw,64px) 20px}
-main{width:100%;max-width:920px}
+main{width:100%;max-width:1280px}
 .eyebrow{letter-spacing:.32em;text-transform:uppercase;font-size:11px;color:var(--accent);margin:0 0 14px}
 h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:clamp(34px,6vw,60px);line-height:1.05;margin:0 0 28px;letter-spacing:-.01em}
+
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:24px;align-items:stretch}
+.left{min-width:0}
 .frame{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:10px;box-shadow:0 30px 80px -30px rgba(0,0,0,.6)}
 .video{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000}
-.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video iframe,.video #player{position:absolute;inset:0;width:100%;height:100%;border:0}
 .controls{display:flex;align-items:center;justify-content:center;gap:14px;margin:26px 0 8px}
 button{font:inherit;cursor:pointer;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:999px;width:52px;height:52px;display:grid;place-items:center;transition:.2s}
 button:hover{border-color:var(--accent);color:var(--accent)}
@@ -35,56 +38,154 @@ button.main{width:68px;height:68px;background:var(--accent);color:var(--bg);bord
 button.main:hover{color:var(--bg);filter:brightness(1.1)}
 svg{width:20px;height:20px;fill:currentColor}
 button.main svg{width:26px;height:26px}
-form{display:flex;gap:10px;margin-top:40px;border-top:1px solid var(--line);padding-top:28px;flex-wrap:wrap}
-label{width:100%;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:999px;padding:14px 20px;font:inherit;font-size:14px;outline:none}
-input:focus{border-color:var(--accent)}
-form button{width:auto;padding:0 26px;height:48px}
-.note{color:var(--muted);font-size:13px;margin-top:14px;min-height:1em}
+
+/* playlist panel (right) */
+.side{position:relative;min-height:340px;background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:0 30px 80px -30px rgba(0,0,0,.6);overflow:hidden}
+.side-inner{position:absolute;inset:0;display:flex;flex-direction:column}
+.side-head{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.side-head h2{margin:0;font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);font-weight:400}
+.side-head span{font-size:12px;color:var(--muted)}
+#list{list-style:none;margin:0;padding:8px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.item{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:.15s}
+.item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.item.active{background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.num{width:22px;text-align:center;font-size:12px;color:var(--muted);flex:none}
+.item.active .num{color:var(--accent)}
+.thumb{width:84px;aspect-ratio:16/9;border-radius:8px;object-fit:cover;background:#000;flex:none}
+.meta{min-width:0}
+.title{font-size:13.5px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item.active .title{color:var(--accent)}
+.author{font-size:11.5px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{padding:24px 18px;color:var(--muted);font-size:13px;line-height:1.5}
+
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr}
+  .side{min-height:0;height:460px}
+}
 </style>
 </head>
 <body>
 <main>
   <p class="eyebrow">Playlist</p>
   <h1>Now Playing</h1>
-  <div class="frame"><div class="video">
-    <iframe id="player" title="YouTube playlist player" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
-  </div></div>
 
-  <div class="controls">
-    <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12 18 6v12z"/></svg></button>
-    <button id="toggle" class="main" aria-label="Play or pause"><svg id="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-    <button id="next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18V6l8.5 6z"/></svg></button>
+  <div class="layout">
+    <div class="left">
+      <div class="frame"><div class="video"><div id="player"></div></div></div>
+      <div class="controls">
+        <button id="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zM9.5 12 18 6v12z"/></svg></button>
+        <button id="toggle" class="main" aria-label="Play or pause"><svg id="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+        <button id="next" aria-label="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18V6l8.5 6z"/></svg></button>
+      </div>
+    </div>
+
+    <aside class="side" aria-label="Playlist songs">
+      <div class="side-inner">
+        <div class="side-head"><h2>Up Next</h2><span id="count"></span></div>
+        <ol id="list"><li class="empty">Loading songs…</li></ol>
+      </div>
+    </aside>
   </div>
-
 </main>
 
 <script>
 var DEFAULT_VIDEO = "FsRxbys6L9E";
-var DEFAULT_LIST = "PLWW0p45eLuto";
-var frame = document.getElementById("player");
-var playing = false;
+var DEFAULT_LIST  = "PLWW0p45eLuto";
 
-function load(list, video){
-  var src = video
-    ? "https://www.youtube.com/embed/" + video + "?list=" + list + "&"
-    : "https://www.youtube.com/embed/videoseries?list=" + list + "&";
-  frame.src = src + "enablejsapi=1&rel=0&modestbranding=1&playsinline=1";
-  playing = false; setIcon();
+var player, ids = [], items = [], playing = false, built = false;
+var listEl = document.getElementById("list");
+
+/* load the YouTube IFrame API */
+var tag = document.createElement("script");
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+function onYouTubeIframeAPIReady(){
+  player = new YT.Player("player", {
+    width: "100%", height: "100%",
+    playerVars: { listType:"playlist", list:DEFAULT_LIST, rel:0, modestbranding:1, playsinline:1 },
+    events: { onReady:onReady, onStateChange:onState }
+  });
 }
-function cmd(fn){
-  try{ frame.contentWindow.postMessage(JSON.stringify({event:"command",func:fn,args:""}),"*"); }catch(e){}
+
+function onReady(){
+  var tries = 0;
+  var t = setInterval(function(){
+    var pl = player.getPlaylist && player.getPlaylist();
+    tries++;
+    if (pl && pl.length){
+      clearInterval(t);
+      ids = pl;
+      var start = ids.indexOf(DEFAULT_VIDEO);
+      if (start > 0) player.cuePlaylist({listType:"playlist", list:DEFAULT_LIST, index:start});
+      buildList();
+    } else if (tries > 40){
+      clearInterval(t);
+      listEl.innerHTML = '<li class="empty">Couldn\u2019t load the playlist songs. Check that the playlist ID is correct and the playlist is public or unlisted.</li>';
+    }
+  }, 250);
 }
+
+function buildList(){
+  built = true;
+  document.getElementById("count").textContent = ids.length + " songs";
+  listEl.innerHTML = "";
+  ids.forEach(function(id, i){
+    var li = document.createElement("li");
+    li.className = "item";
+    li.innerHTML =
+      '<span class="num">' + (i+1) + '</span>' +
+      '<img class="thumb" loading="lazy" alt="" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg">' +
+      '<div class="meta"><div class="title">Song ' + (i+1) + '</div><div class="author"></div></div>';
+    li.onclick = function(){ player.playVideoAt(i); };
+    listEl.appendChild(li);
+    items.push(li);
+    fetchTitle(id, li);
+  });
+  markActive();
+}
+
+/* titles + channel names via YouTube oEmbed (no API key needed) */
+function fetchTitle(id, li){
+  fetch("https://www.youtube.com/oembed?format=json&url=" + encodeURIComponent("https://www.youtube.com/watch?v=" + id))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      li.querySelector(".title").textContent = d.title;
+      li.querySelector(".author").textContent = d.author_name || "";
+    })
+    .catch(function(){});
+}
+
+function markActive(){
+  if (!built) return;
+  var cur = player.getPlaylistIndex();
+  items.forEach(function(li, i){ li.classList.toggle("active", i === cur); });
+  var a = items[cur];
+  if (a){
+    var top = a.offsetTop - listEl.clientHeight/2 + a.clientHeight/2;
+    listEl.scrollTo({ top: top, behavior: "smooth" });
+  }
+}
+
 function setIcon(){
   document.getElementById("ico").innerHTML = playing
     ? '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'
     : '<path d="M8 5v14l11-7z"/>';
 }
-document.getElementById("toggle").onclick = function(){ playing = !playing; cmd(playing ? "playVideo" : "pauseVideo"); setIcon(); };
-document.getElementById("next").onclick = function(){ cmd("nextVideo"); playing = true; setIcon(); };
-document.getElementById("prev").onclick = function(){ cmd("previousVideo"); playing = true; setIcon(); };
 
-load(DEFAULT_LIST, DEFAULT_VIDEO);
+function onState(e){
+  if (e.data === YT.PlayerState.PLAYING){ playing = true; }
+  else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED || e.data === YT.PlayerState.CUED){ playing = false; }
+  setIcon();
+  if (e.data === YT.PlayerState.PLAYING || e.data === YT.PlayerState.CUED) markActive();
+}
+
+document.getElementById("toggle").onclick = function(){
+  if (!player) return;
+  player.getPlayerState() === YT.PlayerState.PLAYING ? player.pauseVideo() : player.playVideo();
+};
+document.getElementById("next").onclick = function(){ if (player) player.nextVideo(); };
+document.getElementById("prev").onclick = function(){ if (player) player.previousVideo(); };
 </script>
 </body>
 </html>
